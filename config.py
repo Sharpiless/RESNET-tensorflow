@@ -7,9 +7,9 @@ N_CLASSES = 8
 
 BIAS = 32
 
-LEARNING_RATE = 2e-4
+LEARNING_RATE = 1e-4
 
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 
 DATA_PATH = './imagenet16/'
 
@@ -19,7 +19,7 @@ TEST_DATA_PATH = './dataset/test.pkl'
 
 MAP_PATH = os.path.join(DATA_PATH, 'map.txt')
 
-MODEL_PATH = './model/'
+MODEL_PATH = './model'
 
 MODEL_NAME = './model/model.ckpt'
 

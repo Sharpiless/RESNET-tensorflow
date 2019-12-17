@@ -4,6 +4,7 @@ import random
 import os
 import pickle
 import cv2
+from tensorflow.contrib.layers import xavier_initializer
 
 
 class Reader(object):
@@ -19,6 +20,8 @@ class Reader(object):
         self.bias = cfg.BIAS
 
         self.size = cfg.TARGET_SIZE
+
+        _, self.id = self.load_category()
 
         if os.path.exists(cfg.TRAIN_DATA_PATH):
             with open(cfg.TRAIN_DATA_PATH, 'rb') as f:
@@ -124,7 +127,8 @@ class Reader(object):
     def read_image(self, path):
 
         image = cv2.imread(path)
-        image -= 122
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = image-(122, 122, 122)
 
         return image.astype(np.float)
 
@@ -167,9 +171,28 @@ class Reader(object):
 
 if __name__ == "__main__":
 
+    import matplotlib.pyplot as plt
+
     reader = Reader()
 
-    value = reader.generate(4)
+    while True:
 
-    print(value['images'].shape)
-    print(value['labels'].shape)
+        value = reader.generate(1)
+
+        image = value['images']
+        image = np.squeeze(image)
+        image = (image+122).astype(np.int)
+
+        label = value['labels']
+        label = np.squeeze(label)
+
+        label = np.argmax(label)
+
+        for key, value in reader.id.items():
+            if label==value:
+                name = key
+                break
+
+        plt.imshow(image)
+        plt.title(name)
+        plt.show()

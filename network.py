@@ -33,6 +33,8 @@ class Net(object):
 
         self.is_training = is_training
 
+        self.model_name = cfg.MODEL_NAME
+
         self.x = tf.placeholder(tf.float32, [None, self.size, self.size, 3])
 
         self.y = tf.placeholder(tf.float32, [None, self.cls_num])
@@ -58,6 +60,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 64, [3, 3],
                               scope='conv1', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -65,6 +68,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 64, [3, 3],
                               scope='conv2', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -72,12 +76,20 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 64, [3, 3],
                               scope='conv3', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
+
+            res = slim.conv2d(net, 128, [3, 3], 2,
+                              scope='reshape1', padding='SAME')
 
             # block4
             net = slim.conv2d(net, 128, [3, 3], 2,
                               scope='conv4_3x3', padding='SAME')
+
             net = slim.conv2d(net, 128, [3, 3], 1,
                               scope='conv4_1x1', padding='SAME')
+
+            net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -85,6 +97,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 128, [3, 3],
                               scope='conv5', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -92,6 +105,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 128, [3, 3],
                               scope='conv6', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -99,12 +113,19 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 128, [3, 3],
                               scope='conv7', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
+
+            res = slim.conv2d(net, 256, [3, 3], 2,
+                              scope='reshape2', padding='SAME')
 
             # block8
             net = slim.conv2d(net, 256, [3, 3], 2,
                               scope='conv8_3x3', padding='SAME')
+
             net = slim.conv2d(net, 256, [3, 3], 1,
                               scope='conv8_1x1', padding='SAME')
+            net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -112,6 +133,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 256, [3, 3],
                               scope='conv9', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -119,6 +141,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 256, [3, 3],
                               scope='conv10', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -126,12 +149,20 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 256, [3, 3],
                               scope='conv11', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
+
+            res = slim.conv2d(net, 512, [3, 3], 2,
+                              scope='reshape3', padding='SAME')
 
             # block12
             net = slim.conv2d(net, 512, [3, 3], 2,
                               scope='conv12_3x3', padding='SAME')
+
             net = slim.conv2d(net, 512, [3, 3], 1,
                               scope='conv12_1x1', padding='SAME')
+
+            net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -139,6 +170,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 512, [3, 3],
                               scope='conv13', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             res = net
 
@@ -146,6 +178,7 @@ class Net(object):
             net = slim.repeat(net, 2, slim.conv2d, 512, [3, 3],
                               scope='conv14', padding='SAME')
             net = tf.add(net, res)
+            net = tf.layers.batch_normalization(net, training=self.is_training)
 
             avg_pool = slim.avg_pool2d(net, [7, 7], scope='avg_pool')
 
@@ -154,7 +187,7 @@ class Net(object):
             logits = tf.layers.dense(avg_pool, 1000)
 
             if self.is_training:
-                logits = tf.nn.dropout(logits, self.keep_rate)
+                logits = tf.nn.dropout(logits, keep_prob=self.keep_rate)
 
             logits = tf.layers.dense(logits, self.cls_num)
 
@@ -201,10 +234,11 @@ class Net(object):
 
                 print('Epoch:{} Loss{}'.format(epoch, mean_loss))
 
-                self.saver.save(sess, self.model_path)
+                self.saver.save(sess, self.model_name)
+
 
 if __name__ == "__main__":
-    
+
     net = Net(is_training=True)
 
     net.train_net()
