@@ -53,9 +53,9 @@ class Net(object):
         right_pred = tf.equal(tf.argmax(labels, axis=-1),
                               tf.argmax(logits, axis=-1))
 
-        acc = tf.reduce_mean(tf.cast(right_pred, tf.int32))
+        accuracy = tf.reduce_mean(tf.cast(right_pred, tf.float32))
 
-        return acc
+        return accuracy
 
     def resnet(self, inputs):
 

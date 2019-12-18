@@ -11,7 +11,7 @@ class Classifier(object):
 
     def __init__(self):
 
-        self.net = Net(is_training=False)
+        self.net = Net(is_training=True)
 
         self.model_path = cfg.MODEL_PATH
 

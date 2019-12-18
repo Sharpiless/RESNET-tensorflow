@@ -3,11 +3,11 @@ import os
 if not os.path.exists('./dataset'):
     os.makedirs('./dataset')
 
-N_CLASSES = 8
+N_CLASSES = 16
 
 BIAS = 32
 
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 2e-5
 
 BATCH_SIZE = 16
 
@@ -25,11 +25,14 @@ MODEL_NAME = './model/model.ckpt'
 
 TARGET_SIZE = 224
 
-EPOCHES = 200
+EPOCHES = 400
 
 BATCHES = 32
 
-KEEP_RATE = 0.80
+KEEP_RATE = 0.50
 
 CLASSES = ['knife', 'keyboard', 'elephant',
-           'bicycle', 'airplane',  'clock', 'oven', 'chair']
+           'bicycle', 'airplane',  'clock',
+           'oven', 'chair', 'bear', 'boat',
+           'cat', 'bottle', 'truck', 'car',
+           'bird', 'dog']

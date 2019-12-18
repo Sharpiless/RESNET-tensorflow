@@ -23,6 +23,19 @@ class Reader(object):
 
         self.classes = cfg.CLASSES
 
+        self.cursor = 0
+
+        self.pre_process()
+
+        self.train_num = len(self.train_data)
+
+        random.shuffle(self.train_data)
+        random.shuffle(self.test_data)
+
+    def pre_process(self):
+
+        self.category = self.load_category()
+
         if os.path.exists(cfg.TRAIN_DATA_PATH):
             with open(cfg.TRAIN_DATA_PATH, 'rb') as f:
                 self.train_data = pickle.load(f)
@@ -34,13 +47,6 @@ class Reader(object):
                 self.test_data = pickle.load(f)
         else:
             self.test_data = self.load_image_path(is_training=False)
-
-        self.cursor = 0
-
-        self.train_num = len(self.train_data)
-
-        random.shuffle(self.train_data)
-        random.shuffle(self.test_data)
 
     def resize_image(self, image):
 
@@ -79,50 +85,41 @@ class Reader(object):
         while '=' in file_data:
             file_data.remove('=')
 
-        encoded = file_data[::2]
-        name = file_data[1::2]
-
-        encoded = encoded[:n_classes]
-        name = name[:n_classes]
+        cls_name = file_data[::2]
+        cls_id = file_data[1::2]
 
         categories = {}
-        for key, value in zip(encoded, name):
+        for key, value in zip(cls_id, cls_name):
             categories[key] = value
 
-        label = {}
-        for num in range(n_classes):
-            key = encoded[num]
-            label[key] = num
-
-        return categories, label
+        return categories
 
     def load_image_path(self, is_training=True):
 
         pkl_path = cfg.TRAIN_DATA_PATH if is_training else cfg.TEST_DATA_PATH
 
-        category, label = self.load_category()
+        category = self.load_category()
 
-        n_classes = cfg.N_CLASSES
-
-        c = []
+        data = []
 
         inner_path = 'train/' if is_training else 'val/'
 
-        for sub_path in label.keys():
+        for cls_id, cls_name in category.items():
 
-            path = self.data_path+inner_path+category[sub_path]
+            path = os.path.join(self.data_path, inner_path+cls_id)
             files = os.listdir(path)
 
             for file_name in files:
 
                 file_name = os.path.join(path, file_name)
 
-                c.append({'image_path': file_name, 'label': label[sub_path]})
+                data.append({'image_path': file_name,
+                             'label': cls_name})
 
         with open(pkl_path, 'wb') as f:
-            pickle.dump(c, f)
+            pickle.dump(data, f)
 
-        return c
+        return data
 
     def read_image(self, path):
 
@@ -141,7 +138,7 @@ class Reader(object):
         return one_hot
 
     def generate_test(self, batch_size):
-    
+
         images = []
         labels = []
 
@@ -152,7 +149,8 @@ class Reader(object):
             image = self.read_image(value['image_path'])
             image = self.random_crop(image)
 
-            label = self.one_hot(value['label'])
+            label = self.classes.index(value['label'])
+            label = self.one_hot(label)
 
             images.append(image)
             labels.append(label)
@@ -176,7 +174,8 @@ class Reader(object):
             image = self.read_image(value['image_path'])
             image = self.random_crop(image)
 
-            label = self.one_hot(value['label'])
+            label = self.classes.index(value['label'])
+            label = self.one_hot(label)
 
             images.append(image)
             labels.append(label)
