@@ -21,7 +21,7 @@ class Reader(object):
 
         self.size = cfg.TARGET_SIZE
 
-        _, self.id = self.load_category()
+        self.classes = cfg.CLASSES
 
         if os.path.exists(cfg.TRAIN_DATA_PATH):
             with open(cfg.TRAIN_DATA_PATH, 'rb') as f:
@@ -140,6 +140,30 @@ class Reader(object):
 
         return one_hot
 
+    def generate_test(self, batch_size):
+    
+        images = []
+        labels = []
+
+        for i in range(batch_size):
+
+            value = self.test_data[i]
+
+            image = self.read_image(value['image_path'])
+            image = self.random_crop(image)
+
+            label = self.one_hot(value['label'])
+
+            images.append(image)
+            labels.append(label)
+
+        random.shuffle(self.test_data)
+
+        images = np.stack(images)
+        labels = np.stack(labels)
+
+        return {'images': images, 'labels': labels}
+
     def generate(self, batch_size):
 
         images = []
@@ -188,10 +212,7 @@ if __name__ == "__main__":
 
         label = np.argmax(label)
 
-        for key, value in reader.id.items():
-            if label==value:
-                name = key
-                break
+        name = reader.classes[label]
 
         plt.imshow(image)
         plt.title(name)

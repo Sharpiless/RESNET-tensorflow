@@ -9,7 +9,7 @@ BIAS = 32
 
 LEARNING_RATE = 1e-4
 
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 
 DATA_PATH = './imagenet16/'
 
@@ -30,3 +30,6 @@ EPOCHES = 200
 BATCHES = 32
 
 KEEP_RATE = 0.80
+
+CLASSES = ['knife', 'keyboard', 'elephant',
+           'bicycle', 'airplane',  'clock', 'oven', 'chair']

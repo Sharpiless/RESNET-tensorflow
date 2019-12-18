@@ -42,9 +42,20 @@ class Net(object):
         self.y_hat = self.resnet(self.x)
 
         self.loss = tf.reduce_mean(
-            tf.nn.softmax_cross_entropy_with_logits_v2(self.y, self.y_hat))
+            tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y, logits=self.y_hat))
 
         self.saver = tf.train.Saver()
+
+        self.acc = self.calculate_acc(self.y, self.y_hat)
+
+    def calculate_acc(self, labels, logits):
+
+        right_pred = tf.equal(tf.argmax(labels, axis=-1),
+                              tf.argmax(logits, axis=-1))
+
+        acc = tf.reduce_mean(tf.cast(right_pred, tf.int32))
+
+        return acc
 
     def resnet(self, inputs):
 
@@ -232,7 +243,23 @@ class Net(object):
 
                 mean_loss = np.mean(np.array(loss_list))
 
-                print('Epoch:{} Loss{}'.format(epoch, mean_loss))
+                acc_list = []
+
+                for _ in range(10):
+
+                    test_data = self.reader.generate_test(batch_size=32)
+
+                    test_dict = {
+                        self.x: test_data['images'],
+                        self.y: test_data['labels']
+                    }
+
+                    acc = sess.run(self.acc, test_dict)
+                    acc_list.append(acc)
+
+                acc = np.mean(np.array(acc_list))
+
+                print('Epoch:{} Loss{} Acc:{}'.format(epoch, mean_loss, acc))
 
                 self.saver.save(sess, self.model_name)
 
